@@ -17,17 +17,8 @@ interface Task {
   styleUrls: ['./todolist.component.css']
 })
 export class TodolistComponent implements OnInit {
-  taskArray: Task[] = [
-    {
-      title: 'Brush teeth',
-      description: 'Morning routine',
-      priority: 'low',
-      dueDate: new Date().toISOString().split('T')[0],
-      status: 'to-do',
-      isCompleted: false
-    }
-  ];
-  sortedTaskArray: Task[] = [...this.taskArray];
+  taskArray: Task[] = [];
+  sortedTaskArray: Task[] = [];
   historyLog: string[] = [];
   sortField = 'dueDate';
 
@@ -45,7 +36,19 @@ export class TodolistComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
+    this.loadTasksFromLocalStorage();
     this.sortTasks();
+  }
+
+  saveTasksToLocalStorage() {
+    localStorage.setItem('tasks', JSON.stringify(this.taskArray));
+  }
+
+  loadTasksFromLocalStorage() {
+    const storedTasks = localStorage.getItem('tasks');
+    if (storedTasks) {
+      this.taskArray = JSON.parse(storedTasks);
+    }
   }
 
   onSubmit(form: NgForm) {
@@ -60,6 +63,7 @@ export class TodolistComponent implements OnInit {
     this.taskArray.push(newTask);
     this.historyLog.push(`Task created: ${newTask.title} - ${newTask.description} - ${newTask.priority} - ${newTask.dueDate}`);
     this.sortTasks();
+    this.saveTasksToLocalStorage();
     form.reset();
   }
 
@@ -67,6 +71,7 @@ export class TodolistComponent implements OnInit {
     this.historyLog.push(`Task deleted: ${this.taskArray[index].title}`);
     this.taskArray.splice(index, 1);
     this.sortTasks();
+    this.saveTasksToLocalStorage();
   }
 
   editTask(index: number) {
@@ -77,9 +82,11 @@ export class TodolistComponent implements OnInit {
 
   onEditSubmit(form: NgForm) {
     if (this.editTaskIndex !== null) {
+      const oldTask = this.taskArray[this.editTaskIndex];
       this.taskArray[this.editTaskIndex] = { ...this.editTaskData };
-      this.historyLog.push(`Task edited: ${this.editTaskData.title}`);
+      this.historyLog.push(`Task edited: ${oldTask.title} -> ${this.editTaskData.title}, ${oldTask.description} -> ${this.editTaskData.description}, ${oldTask.priority} -> ${this.editTaskData.priority}, ${oldTask.dueDate} -> ${this.editTaskData.dueDate}`);
       this.sortTasks();
+      this.saveTasksToLocalStorage();
       this.closeEditModal();
     }
   }
@@ -99,10 +106,10 @@ export class TodolistComponent implements OnInit {
 
   onStatusChange(index: number, event: Event) {
     const selectElement = event.target as HTMLSelectElement;
-    const status = selectElement.value as 'to-do' | 'in-progress' | 'completed';
+    const status = selectElement.value as Task['status'];
     this.taskArray[index].status = status;
-    this.historyLog.push(`Task status changed: ${this.taskArray[index].title} to ${status}`);
-    this.sortTasks();
+    this.historyLog.push(`Status changed for ${this.taskArray[index].title} to ${status}`);
+    this.saveTasksToLocalStorage();
   }
 
   onSortChange(event: Event) {
