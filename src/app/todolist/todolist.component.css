@@ -14,4 +14,22 @@ h1 {
   .table-responsive {
     overflow-x: auto;
   }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .inline-field {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .inline-field label {
+    margin-right: 10px;
+  }
+  
+  .small-width {
+    width: 150px;
+  }
   
