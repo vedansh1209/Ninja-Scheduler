@@ -21,23 +21,22 @@ export class TodolistComponent implements OnInit {
   sortedTaskArray: Task[] = [];
   historyLog: string[] = [];
   sortField = 'dueDate';
+  lastId = 0;
 
   isEditModalOpen = false;
   editTaskIndex: number | null = null;
-  editTaskData: Task = {
-    id: Date.now(),
-    title: '',
-    description: '',
-    priority: 'low',
-    dueDate: '',
-    status: 'to-do'
-  };
+  editTaskData: Task = this.getEmptyTask();
 
   constructor() { }
 
   ngOnInit(): void {
     this.loadTasksFromLocalStorage();
     this.sortTasks();
+  }
+
+  generateNewId() {
+    this.lastId += 1;
+    return this.lastId;
   }
 
   saveTasksToLocalStorage() {
@@ -48,12 +47,25 @@ export class TodolistComponent implements OnInit {
     const storedTasks = localStorage.getItem('tasks');
     if (storedTasks) {
       this.taskArray = JSON.parse(storedTasks);
+      // Set the lastId based on the maximum id in the loaded tasks
+      this.lastId = Math.max(0, ...this.taskArray.map(task => task.id));
     }
+  }
+
+  getEmptyTask(): Task {
+    return {
+      id: 0,
+      title: '',
+      description: '',
+      priority: 'low',
+      dueDate: '',
+      status: 'to-do'
+    };
   }
 
   onSubmit(form: NgForm) {
     const newTask: Task = {
-      id: Date.now(),
+      id: this.generateNewId(),
       title: form.controls['title'].value,
       description: form.controls['description'].value,
       priority: form.controls['priority'].value,
@@ -76,7 +88,7 @@ export class TodolistComponent implements OnInit {
 
   editTask(index: number) {
     this.editTaskIndex = index;
-    this.editTaskData = { ...this.taskArray[index] };
+    this.editTaskData = { ...this.taskArray[index] }; // Create a shallow copy of the task to avoid reference issues
     this.isEditModalOpen = true;
   }
 
@@ -94,20 +106,16 @@ export class TodolistComponent implements OnInit {
   closeEditModal() {
     this.isEditModalOpen = false;
     this.editTaskIndex = null;
-    this.editTaskData = {
-      id: Date.now(),
-      title: '',
-      description: '',
-      priority: 'low',
-      dueDate: '',
-      status: 'to-do'
-    };
+    this.editTaskData = this.getEmptyTask();
   }
 
   onStatusChange(index: number, event: Event) {
     const selectElement = event.target as HTMLSelectElement;
     const status = selectElement.value as Task['status'];
-    this.taskArray = this.taskArray.map((task, i) => i === index ? { ...task, status: status } : task);
+
+    // Create a copy of the task to avoid direct mutation
+    this.taskArray[index] = { ...this.taskArray[index], status };
+
     this.historyLog.push(`Status changed for ${this.taskArray[index].title} to ${status}`);
     this.sortTasks();
     this.saveTasksToLocalStorage();
