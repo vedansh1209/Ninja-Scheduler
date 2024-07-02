@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ninja Scheduler</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .inline-field {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .inline-field label {
+      margin-right: 10px;
+    }
+    .small-width {
+      width: 150px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Ninja Scheduler</h1>
+
+    <hr>
+    <form (ngSubmit)="onSubmit(taskForm)" #taskForm="ngForm">
+      <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" class="form-control" id="title" placeholder="Enter title" ngModel name="title" required>
+      </div>
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea class="form-control" id="description" placeholder="Enter description" ngModel name="description" required></textarea>
+      </div>
+      <div class="inline-field">
+        <label for="priority">Priority</label>
+        <select class="form-control form-control-sm small-width" id="priority" ngModel name="priority" required>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      <div class="inline-field">
+        <label for="dueDate">Due Date</label>
+        <input type="date" class="form-control form-control-sm small-width" id="dueDate" ngModel name="dueDate" required>
+      </div>
+      <button [disabled]="taskForm.invalid" id="submitButton" type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <hr>
+    <div class="inline-field">
+      <label for="sortField">Sort By</label>
+      <select class="form-control form-control-sm small-width" id="sortField" (change)="onSortChange($event)">
+        <option value="dueDate">Due Date</option>
+        <option value="priority">Priority</option>
+        <option value="status">Status</option>
+      </select>
+    </div>
+
+    <hr>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Title</th>
+          <th scope="col">Description</th>
+          <th scope="col">Priority</th>
+          <th scope="col">Due Date</th>
+          <th scope="col">Status</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let t of sortedTaskArray; index as i">
+          <td>{{ t.title }}</td>
+          <td>{{ t.description }}</td>
+          <td>{{ t.priority }}</td>
+          <td>{{ t.dueDate }}</td>
+          <td>
+            <select class="form-control form-control-sm small-width" (change)="onStatusChange(i, $event)" [value]="t.status">
+              <option value="to-do">To-Do</option>
+              <option value="in-progress">In-Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </td>
+          <td>
+            <button class="btn btn-warning btn-sm mr-2" (click)="editTask(i)">Edit</button>
+            <button class="btn btn-danger btn-sm" (click)="onDelete(i)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <hr>
+    <button class="btn btn-success" (click)="exportToCSV()">Export to CSV</button>
+
+    <!-- History Log -->
+    <hr>
+    <h2>Task History Log</h2>
+    <ul>
+      <li *ngFor="let log of historyLog">{{ log }}</li>
+    </ul>
+
+    <!-- Modal -->
+    <div class="modal" tabindex="-1" role="dialog" [ngClass]="{'show': isEditModalOpen}" [ngStyle]="{'display': isEditModalOpen ? 'block' : 'none'}">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit Task</h5>
+            <button type="button" class="close" (click)="closeEditModal()" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form #editForm="ngForm" (ngSubmit)="onEditSubmit(editForm)">
+              <div class="form-group">
+                <label for="editTitle">Title</label>
+                <input type="text" class="form-control" id="editTitle" [(ngModel)]="editTaskData.title" name="editTitle" required>
+              </div>
+              <div class="form-group">
+                <label for="editDescription">Description</label>
+                <textarea class="form-control" id="editDescription" [(ngModel)]="editTaskData.description" name="editDescription" required></textarea>
+              </div>
+              <div class="form-group">
+                <label for="editPriority">Priority</label>
+                <select class="form-control" id="editPriority" [(ngModel)]="editTaskData.priority" name="editPriority" required>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="editDueDate">Due Date</label>
+                <input type="date" class="form-control" id="editDueDate" [(ngModel)]="editTaskData.dueDate" name="editDueDate" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Save changes</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
