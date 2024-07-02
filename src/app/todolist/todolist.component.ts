@@ -3,12 +3,12 @@ import { NgForm } from '@angular/forms';
 import { saveAs } from 'file-saver';
 
 interface Task {
+  id: number;
   title: string;
   description: string;
   priority: 'low' | 'medium' | 'high';
   dueDate: string;
   status: 'to-do' | 'in-progress' | 'completed';
-  isCompleted: boolean;
 }
 
 @Component({
@@ -25,12 +25,12 @@ export class TodolistComponent implements OnInit {
   isEditModalOpen = false;
   editTaskIndex: number | null = null;
   editTaskData: Task = {
+    id: Date.now(),
     title: '',
     description: '',
     priority: 'low',
     dueDate: '',
-    status: 'to-do',
-    isCompleted: false
+    status: 'to-do'
   };
 
   constructor() { }
@@ -53,12 +53,12 @@ export class TodolistComponent implements OnInit {
 
   onSubmit(form: NgForm) {
     const newTask: Task = {
+      id: Date.now(),
       title: form.controls['title'].value,
       description: form.controls['description'].value,
       priority: form.controls['priority'].value,
       dueDate: form.controls['dueDate'].value,
-      status: 'to-do',
-      isCompleted: false
+      status: 'to-do'
     };
     this.taskArray.push(newTask);
     this.historyLog.push(`Task created: ${newTask.title} - ${newTask.description} - ${newTask.priority} - ${newTask.dueDate}`);
@@ -95,20 +95,21 @@ export class TodolistComponent implements OnInit {
     this.isEditModalOpen = false;
     this.editTaskIndex = null;
     this.editTaskData = {
+      id: Date.now(),
       title: '',
       description: '',
       priority: 'low',
       dueDate: '',
-      status: 'to-do',
-      isCompleted: false
+      status: 'to-do'
     };
   }
 
   onStatusChange(index: number, event: Event) {
     const selectElement = event.target as HTMLSelectElement;
     const status = selectElement.value as Task['status'];
-    this.taskArray[index].status = status;
+    this.taskArray = this.taskArray.map((task, i) => i === index ? { ...task, status: status } : task);
     this.historyLog.push(`Status changed for ${this.taskArray[index].title} to ${status}`);
+    this.sortTasks();
     this.saveTasksToLocalStorage();
   }
 
